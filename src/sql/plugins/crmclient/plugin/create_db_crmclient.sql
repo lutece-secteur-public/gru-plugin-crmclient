@@ -1,3 +1,7 @@
+-- liquibase formatted sql
+-- changeset crmclient:create_db_crmclient.sql
+-- preconditions onFail:MARK_RAN onError:WARN
+
 --
 -- Table structure for table crm_client_crm_queue
 --
