@@ -40,24 +40,26 @@ import fr.paris.lutece.plugins.crmclient.util.http.HttpMethodEnum;
 import fr.paris.lutece.plugins.crmclient.util.http.IWebServiceCaller;
 import fr.paris.lutece.util.url.UrlItem;
 
-import org.springframework.beans.factory.InitializingBean;
-
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 /**
  *
  * CRMClientWSProcessor
  *
  */
-public class CRMClientWSProcessor implements ICRMClientProcessor, InitializingBean
+@ApplicationScoped
+@Named( ICRMClientProcessor.BEAN_PROCESSOR )
+public class CRMClientWSProcessor implements ICRMClientProcessor
 {
+    @Inject
+    @Named( "crmclient.signatureElements" )
     private List<String> _listSignatureElements;
     @Inject
     @Named( "crmclient.webServiceCaller" )
@@ -99,35 +101,20 @@ public class CRMClientWSProcessor implements ICRMClientProcessor, InitializingBe
     }
 
     /**
-     * {@inheritDoc}
+     * Check that the required dependencies have been injected.
      */
-    @Override
-    public void afterPropertiesSet( ) throws Exception
+    @PostConstruct
+    public void afterPropertiesSet( )
     {
-        Assert.notNull( _webServiceCaller, "The WebService Caller must be set." );
-        Assert.notNull( _listSignatureElements, "The list of signature elements must be set." );
-    }
+        if ( _webServiceCaller == null )
+        {
+            throw new IllegalStateException( "The WebService Caller must be set." );
+        }
 
-    /**
-     * Set the signature elements
-     * 
-     * @param listSignatureElements
-     *            the signature elements
-     */
-    public void setSignatureElements( List<String> listSignatureElements )
-    {
-        _listSignatureElements = listSignatureElements;
-    }
-
-    /**
-     * Set the web service caller
-     * 
-     * @param webServiceCaller
-     *            the web service caller
-     */
-    public void setWebServiceCaller( IWebServiceCaller webServiceCaller )
-    {
-        _webServiceCaller = webServiceCaller;
+        if ( _listSignatureElements == null )
+        {
+            throw new IllegalStateException( "The list of signature elements must be set." );
+        }
     }
 
     /**

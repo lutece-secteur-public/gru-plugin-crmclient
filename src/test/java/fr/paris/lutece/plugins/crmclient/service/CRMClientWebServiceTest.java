@@ -34,13 +34,18 @@
 package fr.paris.lutece.plugins.crmclient.service;
 
 import fr.paris.lutece.plugins.crmclient.business.MokeCRMItem;
+import fr.paris.lutece.plugins.crmclient.service.authenticator.AuthenticatorService;
 import fr.paris.lutece.plugins.crmclient.service.processor.CRMClientWSProcessor;
 import fr.paris.lutece.plugins.crmclient.util.CRMException;
 import fr.paris.lutece.plugins.crmclient.util.http.MokeWebServiceCaller;
 import fr.paris.lutece.test.LuteceTestCase;
+import fr.paris.lutece.test.ReflectionTestUtils;
+import fr.paris.lutece.util.signrequest.RequestAuthenticator;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -53,19 +58,28 @@ public class CRMClientWebServiceTest extends LuteceTestCase
     private static final String KEY2 = "Key2";
 
     /**
-     * Test of doProcess method of fr.paris.lutece.plugins.crmclient.service.CRMClientWebService
+     * Test of doProcess method of fr.paris.lutece.plugins.crmclient.service.processor.CRMClientWSProcessor
      */
+    @Test
     public void testDoProcess( )
     {
-        System.out.println( "doProcess" );
-
         CRMClientWSProcessor webService = new CRMClientWSProcessor( );
-        webService.setWebServiceCaller( new MokeWebServiceCaller( ) );
+        ReflectionTestUtils.setField( webService, "_webServiceCaller", new MokeWebServiceCaller( ) );
 
-        List<String> listElements = new ArrayList<String>( );
+        List<String> listElements = new ArrayList<>( );
         listElements.add( KEY1 );
         listElements.add( KEY2 );
-        webService.setSignatureElements( listElements );
+        ReflectionTestUtils.setField( webService, "_listSignatureElements", listElements );
+
+        AuthenticatorService authenticatorService = new AuthenticatorService( )
+        {
+            @Override
+            public RequestAuthenticator getRequestAuthenticatorForWs( String strCrmWebAppCode )
+            {
+                return null;
+            }
+        };
+        ReflectionTestUtils.setField( webService, "_authenticatorService", authenticatorService );
 
         try
         {

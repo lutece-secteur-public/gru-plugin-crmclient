@@ -33,20 +33,23 @@
  */
 package fr.paris.lutece.plugins.crmclient.business;
 
-import fr.paris.lutece.portal.service.spring.SpringContextService;
 import fr.paris.lutece.portal.service.util.AppLogService;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.CannotLoadBeanClassException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.literal.NamedLiteral;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Named;
 
 /**
  *
  * CRMItemFactory
  *
  */
+@ApplicationScoped
+@Named( "crmclient.crmItemFactory" )
 public class CRMItemFactory implements ICRMItemFactory
 {
     /**
@@ -62,25 +65,18 @@ public class CRMItemFactory implements ICRMItemFactory
             return null;
         }
 
-        try
-        {
-            ICRMItem crmItem = SpringContextService.getBean( strBeanName );
+        Instance<ICRMItem> instance = CDI.current( ).select( ICRMItem.class, NamedLiteral.of( strBeanName ) );
 
-            return crmItem;
-        }
-        catch( BeanDefinitionStoreException e )
+        if ( !instance.isResolvable( ) )
         {
-            AppLogService.error( "CRMItemFactory ERROR : could not load bean '" + e.getBeanName( ) + "' - CAUSE : " + e.getMessage( ), e );
-        }
-        catch( NoSuchBeanDefinitionException e )
-        {
-            AppLogService.error( "CRMItemFactory ERROR : could not load bean '" + e.getBeanName( ) + "' - CAUSE : " + e.getMessage( ), e );
-        }
-        catch( CannotLoadBeanClassException e )
-        {
-            AppLogService.error( "CRMItemFactory ERROR : could not load bean '" + e.getBeanName( ) + "' - CAUSE : " + e.getMessage( ), e );
+            AppLogService.error( "CRMItemFactory ERROR : could not load bean '{}'", strBeanName );
+
+            return null;
         }
 
-        return null;
+        ICRMItem crmItem = instance.get( );
+        instance.destroy( crmItem );
+
+        return crmItem;
     }
 }

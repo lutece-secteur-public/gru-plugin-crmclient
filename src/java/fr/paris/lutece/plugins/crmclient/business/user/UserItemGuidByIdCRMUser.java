@@ -35,11 +35,16 @@ package fr.paris.lutece.plugins.crmclient.business.user;
 
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
+
 /**
  *
  * UserItemGuidByIdCRMUser
  *
  */
+@Dependent
+@Named( "crmclient.crmItemUserGuidByIdCRMUser" )
 public class UserItemGuidByIdCRMUser extends UserItem
 {
     private static final long serialVersionUID = 1781761996546052287L;
