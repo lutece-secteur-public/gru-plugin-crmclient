@@ -40,15 +40,19 @@ import fr.paris.lutece.plugins.crmclient.service.processor.ICRMClientProcessor;
 import fr.paris.lutece.plugins.crmclient.service.queue.ICRMClientQueue;
 import fr.paris.lutece.plugins.crmclient.util.CRMException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 /**
  *
  * AbstractCRMClientService
  *
  */
+@ApplicationScoped
+@Named( ICRMClientService.BEAN_SERVICE )
 public class CRMClientService implements ICRMClientService
 {
     // CONSTANTS

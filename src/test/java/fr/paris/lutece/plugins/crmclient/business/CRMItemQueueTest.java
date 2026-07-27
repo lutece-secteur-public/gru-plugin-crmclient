@@ -33,12 +33,15 @@
  */
 package fr.paris.lutece.plugins.crmclient.business;
 
-import fr.paris.lutece.plugins.crmclient.service.queue.DatabaseQueue;
 import fr.paris.lutece.plugins.crmclient.service.queue.ICRMClientQueue;
-import fr.paris.lutece.portal.service.spring.SpringContextService;
 import fr.paris.lutece.test.LuteceTestCase;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
 import java.util.Map.Entry;
+
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -47,22 +50,26 @@ import java.util.Map.Entry;
  */
 public class CRMItemQueueTest extends LuteceTestCase
 {
+    @Inject
+    @Named( ICRMClientQueue.BEAN_SERVICE )
+    private ICRMClientQueue _clientQueue;
+    @Inject
+    private ICRMItemQueueDAO _dao;
+
     /**
      * Test business of class fr.paris.lutece.plugins.crmclient.business.CRMItemQueue
      */
+    @Test
     public void testBusiness( )
     {
         // Initialize an object
         CRMItemQueue queue = new CRMItemQueue( );
         queue.setCRMItem( new MokeCRMItem( ) );
 
-        ICRMClientQueue clientQueue = SpringContextService.getBean( DatabaseQueue.BEAN_SERVICE );
-        ICRMItemQueueDAO dao = SpringContextService.getBean( "crmclient.crmItemQueueDAO" );
-
         // Test create
-        dao.insert( queue );
+        _dao.insert( queue );
 
-        CRMItemQueue queueStored = clientQueue.getNextCRMItemQueue( );
+        CRMItemQueue queueStored = _clientQueue.getNextCRMItemQueue( );
         assertEquals( queue.getIdCRMItemQueue( ), queueStored.getIdCRMItemQueue( ) );
 
         for ( Entry<String, String> parameter : queue.getCRMItem( ).getParameters( ).entrySet( ) )
@@ -72,11 +79,11 @@ public class CRMItemQueueTest extends LuteceTestCase
         }
 
         // Test finders
-        dao.getCountCRMItem( );
+        _dao.getCountCRMItem( );
 
         // Test delete
-        dao.delete( queue.getIdCRMItemQueue( ) );
-        queueStored = clientQueue.getNextCRMItemQueue( );
+        _dao.delete( queue.getIdCRMItemQueue( ) );
+        queueStored = _clientQueue.getNextCRMItemQueue( );
         assertNull( queueStored );
     }
 }

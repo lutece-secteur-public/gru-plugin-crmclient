@@ -42,7 +42,10 @@ import fr.paris.lutece.util.signrequest.NoSecurityAuthenticator;
 import fr.paris.lutece.util.signrequest.RequestAuthenticator;
 import fr.paris.lutece.util.signrequest.RequestHashAuthenticator;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
 import java.util.Date;
 import java.util.List;
@@ -54,6 +57,8 @@ import java.util.Map.Entry;
  * WebServiceCaller
  *
  */
+@ApplicationScoped
+@Named( "crmclient.webServiceCaller" )
 public class WebServiceCaller implements IWebServiceCaller
 {
     /**
@@ -86,7 +91,7 @@ public class WebServiceCaller implements IWebServiceCaller
         catch( HttpAccessException e )
         {
             String strError = "Error connecting to '" + strUrl + "' : ";
-            AppLogService.error( strError + e.getMessage( ), e );
+            AppLogService.error( "{}{}", strError, e.getMessage( ), e );
             throw new CRMException( strError, e );
         }
 

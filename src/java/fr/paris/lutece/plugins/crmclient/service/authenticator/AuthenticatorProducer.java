@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2014, Mairie de Paris
+ * Copyright (c) 2002-2026, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,35 +31,37 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.crmclient;
+package fr.paris.lutece.plugins.crmclient.service.authenticator;
 
-import fr.paris.lutece.plugins.crmclient.business.CRMItemQueueTest;
-import fr.paris.lutece.plugins.crmclient.service.CRMClientWebServiceTest;
+import fr.paris.lutece.util.signrequest.AbstractPrivateKeyAuthenticator;
+import fr.paris.lutece.util.signrequest.cdi.AbstractSignRequestAuthenticatorProducer;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 
 /**
  *
- * AllTests
+ * Produces the sign-request authenticators used by the CRM client. Each authenticator is configured through the
+ * {@code crmclient.requestAuthenticator*} keys of crmclient.properties, resolved by the parent producer.
  *
  */
-public class AllTests
+@ApplicationScoped
+public class AuthenticatorProducer extends AbstractSignRequestAuthenticatorProducer
 {
-    /**
-     * A set of tests
-     * 
-     * @return Test the tests
-     */
-    public static Test suite( )
+    @Produces
+    @ApplicationScoped
+    @Named( "crmclient.requestAuthenticatorForWs" )
+    public AbstractPrivateKeyAuthenticator produceRequestAuthenticatorForWs( )
     {
-        TestSuite suite = new TestSuite( "*** Tests Plugin CRMClient " );
+        return (AbstractPrivateKeyAuthenticator) produceRequestAuthenticator( "crmclient.requestAuthenticatorForWs" );
+    }
 
-        // $JUnit-BEGIN$
-        suite.addTest( new TestSuite( CRMItemQueueTest.class ) );
-        suite.addTest( new TestSuite( CRMClientWebServiceTest.class ) );
-
-        // $JUnit-END$
-        return suite;
+    @Produces
+    @ApplicationScoped
+    @Named( "crmclient.requestAuthenticatorForUrl" )
+    public AbstractPrivateKeyAuthenticator produceRequestAuthenticatorForUrl( )
+    {
+        return (AbstractPrivateKeyAuthenticator) produceRequestAuthenticator( "crmclient.requestAuthenticatorForUrl" );
     }
 }

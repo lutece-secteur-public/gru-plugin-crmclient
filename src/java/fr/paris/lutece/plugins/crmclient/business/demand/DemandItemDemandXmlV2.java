@@ -36,11 +36,16 @@ package fr.paris.lutece.plugins.crmclient.business.demand;
 import fr.paris.lutece.plugins.crmclient.business.ICRMItem;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
+
 /**
  *
  * DemandItemDemandXml
  *
  */
+@Dependent
+@Named( "crmclient.crmItemDemandDemandXmlV2" )
 public class DemandItemDemandXmlV2 extends DemandItemV2
 {
     private static final long serialVersionUID = 1781761996546052287L;

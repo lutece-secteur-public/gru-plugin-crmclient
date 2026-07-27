@@ -35,11 +35,16 @@ package fr.paris.lutece.plugins.crmclient.business.demand;
 
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
+
 /**
  *
  * DemandItemDemandJson
  *
  */
+@Dependent
+@Named( "crmclient.crmItemDemandDemandJson" )
 public class DemandItemDemandJson extends DemandItem
 {
     private static final long serialVersionUID = 1781761996546052287L;

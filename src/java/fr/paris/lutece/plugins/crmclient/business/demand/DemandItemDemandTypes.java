@@ -36,9 +36,14 @@ package fr.paris.lutece.plugins.crmclient.business.demand;
 import fr.paris.lutece.plugins.crmclient.business.CRMItem;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
+
 /**
  * This class represents the CRMItem for the demand types
  */
+@Dependent
+@Named( "crmclient.crmItemDemandTypes" )
 public class DemandItemDemandTypes extends CRMItem
 {
     private static final long serialVersionUID = 1781751196576052287L;

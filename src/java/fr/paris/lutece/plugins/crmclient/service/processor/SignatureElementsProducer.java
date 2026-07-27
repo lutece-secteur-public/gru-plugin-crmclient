@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2014, Mairie de Paris
+ * Copyright (c) 2002-2026, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,36 +31,28 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.crmclient.business.demand;
+package fr.paris.lutece.plugins.crmclient.service.processor;
 
-import fr.paris.lutece.portal.service.util.AppPropertiesService;
+import java.util.List;
 
-import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
 
 /**
  *
- * DemandItemCreateByUserGuid
+ * Produces the list of CRM item parameter names used to build the request signature. Replaces the {@code util:list}
+ * bean {@code crmclient.signatureElements} of the former Spring context.
  *
  */
-@Dependent
-@Named( "crmclient.crmItemDemandCreateByUserGuid" )
-public class DemandItemCreateByUserGuid extends DemandItem
+@ApplicationScoped
+public class SignatureElementsProducer
 {
-    private static final long serialVersionUID = 1781761996546052287L;
-    private static final String PROPERTY_WS_CRM_DEMAND_CREATE_URL = "crmclient.crm.rest.demand.createByUserGuid.url";
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getUrlForWS( )
+    @Produces
+    @ApplicationScoped
+    @Named( "crmclient.signatureElements" )
+    public List<String> produceSignatureElements( )
     {
-        StringBuffer strUrlForWS = new StringBuffer( );
-        strUrlForWS.append( getCRMWebAppBaseURL( ) );
-        strUrlForWS.append( AppPropertiesService.getProperty( PROPERTY_WS_CRM_REST_DEMAND_BASE_URL ) );
-        strUrlForWS.append( AppPropertiesService.getProperty( PROPERTY_WS_CRM_DEMAND_CREATE_URL ) );
-
-        return strUrlForWS.toString( );
+        return List.of( "id_demand_type", "id_demand", "id_crm_user", "user_guid", "id_status_crm", "crm_web_app_code" );
     }
 }

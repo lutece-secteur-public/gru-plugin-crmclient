@@ -38,10 +38,11 @@ import fr.paris.lutece.plugins.crmclient.service.processor.ICRMClientProcessor;
 import fr.paris.lutece.plugins.crmclient.service.queue.ICRMClientQueue;
 import fr.paris.lutece.plugins.crmclient.util.CRMException;
 import fr.paris.lutece.portal.service.daemon.Daemon;
-import fr.paris.lutece.portal.service.spring.SpringContextService;
 import fr.paris.lutece.portal.service.util.AppLogService;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import jakarta.enterprise.inject.spi.CDI;
 
 /**
  *
@@ -56,8 +57,8 @@ public class CRMClientSenderDaemon extends Daemon
     public synchronized void run( )
     {
         StringBuilder sbLog = new StringBuilder( );
-        ICRMClientProcessor crmClientService = SpringContextService.getBean( ICRMClientProcessor.BEAN_PROCESSOR );
-        ICRMClientQueue queue = SpringContextService.getBean( ICRMClientQueue.BEAN_SERVICE );
+        ICRMClientProcessor crmClientService = CDI.current( ).select( ICRMClientProcessor.class ).get( );
+        ICRMClientQueue queue = CDI.current( ).select( ICRMClientQueue.class ).get( );
 
         if ( ( queue != null ) && ( queue.size( ) > 0 ) )
         {

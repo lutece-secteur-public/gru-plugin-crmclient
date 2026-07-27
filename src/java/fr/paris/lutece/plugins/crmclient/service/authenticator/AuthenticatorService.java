@@ -34,17 +34,44 @@
 package fr.paris.lutece.plugins.crmclient.service.authenticator;
 
 import fr.paris.lutece.util.signrequest.AbstractAuthenticator;
+import fr.paris.lutece.util.signrequest.AbstractPrivateKeyAuthenticator;
 import fr.paris.lutece.util.signrequest.RequestAuthenticator;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+@ApplicationScoped
+@Named( "crmclient.requestAuthenticatorService" )
 public class AuthenticatorService implements IAuthenticatorService
 {
     private static final String DEFAULT_AUTHENTICATOR_CODE = "default";
+    @Inject
+    @Named( "crmclient.requestAuthenticatorForWs" )
+    private AbstractPrivateKeyAuthenticator _authenticatorForWs;
+    @Inject
+    @Named( "crmclient.requestAuthenticatorForUrl" )
+    private AbstractPrivateKeyAuthenticator _authenticatorForUrl;
     private Map<String, RequestAuthenticator> _mapRequestAuthenticatorForWs;
     private Map<String, AbstractAuthenticator> _mapRequestAuthenticatorForUrl;
+
+    /**
+     * Build the authenticator maps from the injected authenticators.
+     */
+    @PostConstruct
+    public void init( )
+    {
+        _mapRequestAuthenticatorForWs = new HashMap<>( );
+        _mapRequestAuthenticatorForWs.put( DEFAULT_AUTHENTICATOR_CODE, _authenticatorForWs );
+        _mapRequestAuthenticatorForUrl = new HashMap<>( );
+        _mapRequestAuthenticatorForUrl.put( DEFAULT_AUTHENTICATOR_CODE, _authenticatorForUrl );
+    }
 
     /**
      * {@inheritDoc}
@@ -74,27 +101,5 @@ public class AuthenticatorService implements IAuthenticatorService
 
         return _mapRequestAuthenticatorForUrl.containsKey( strCrmWebbAppCode ) ? _mapRequestAuthenticatorForUrl.get( strCrmWebbAppCode )
                 : _mapRequestAuthenticatorForUrl.get( DEFAULT_AUTHENTICATOR_CODE );
-    }
-
-    /**
-     * setMapRequestAuthenticatorWs
-     * 
-     * @param mapRequestAuthenticator
-     *            mapRequestAuthenticator
-     */
-    public void setMapRequestAuthenticatorForWs( Map<String, RequestAuthenticator> mapRequestAuthenticator )
-    {
-        this._mapRequestAuthenticatorForWs = mapRequestAuthenticator;
-    }
-
-    /**
-     * setMapRequestAuthenticatorUrl
-     * 
-     * @param mapRequestAuthenticatorForUrl
-     *            mapRequestAuthenticatorForUrl
-     */
-    public void setMapRequestAuthenticatorForUrl( Map<String, AbstractAuthenticator> mapRequestAuthenticatorForUrl )
-    {
-        this._mapRequestAuthenticatorForUrl = mapRequestAuthenticatorForUrl;
     }
 }

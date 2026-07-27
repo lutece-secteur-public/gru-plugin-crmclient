@@ -36,11 +36,16 @@ package fr.paris.lutece.plugins.crmclient.business.notification;
 import fr.paris.lutece.plugins.crmclient.business.CRMItem;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Named;
+
 /**
  *
  * NotificationItem
  *
  */
+@Dependent
+@Named( "crmclient.crmItemNotificationV2" )
 public class NotificationItemV2 extends CRMItem
 {
     private static final long serialVersionUID = 8068092823469933679L;
