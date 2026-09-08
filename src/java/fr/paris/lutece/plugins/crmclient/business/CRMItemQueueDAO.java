@@ -36,9 +36,11 @@ package fr.paris.lutece.plugins.crmclient.business;
 import fr.paris.lutece.plugins.crmclient.service.CRMClientPlugin;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.util.sql.DAOUtil;
-import fr.paris.lutece.util.sql.Transaction;
+import fr.paris.lutece.util.sql.ITransactionSynchronizationManager;
+import fr.paris.lutece.util.sql.TransactionManager;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Named;
 
 import java.io.ByteArrayOutputStream;
@@ -128,45 +130,59 @@ public class CRMItemQueueDAO implements ICRMItemQueueDAO
     @Override
     public synchronized void insert( CRMItemQueue crmItemQueue )
     {
-        Transaction transaction = null;
-
-        try
+        boolean bTransactionGlobale = isTransactionGlobaleActive( );
+        if ( !bTransactionGlobale )
+        {
+            TransactionManager.beginTransaction( CRMClientPlugin.getPlugin( ) );
+        }
+        try ( DAOUtil daoUtilQueue = new DAOUtil( SQL_QUERY_INSERT, CRMClientPlugin.getPlugin( ) ) ;
+                DAOUtil daoUtilItem = new DAOUtil( SQL_QUERY_INSERT_CRM_ITEM, CRMClientPlugin.getPlugin( ) ) )
         {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream( );
-            ObjectOutputStream objectOutputStream;
-            objectOutputStream = new ObjectOutputStream( byteArrayOutputStream );
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream( byteArrayOutputStream );
             objectOutputStream.writeObject( crmItemQueue.getCRMItem( ) );
             objectOutputStream.close( );
             byteArrayOutputStream.close( );
-
-            transaction = new Transaction( CRMClientPlugin.getPlugin( ) );
-
             int nNewPrimaryKey = newPrimaryKey( );
             crmItemQueue.setIdCRMItemQueue( nNewPrimaryKey );
-            transaction.prepareStatement( SQL_QUERY_INSERT );
-            transaction.getStatement( ).setInt( 1, nNewPrimaryKey );
-            transaction.executeStatement( );
-            transaction.prepareStatement( SQL_QUERY_INSERT_CRM_ITEM );
-            transaction.getStatement( ).setInt( 1, nNewPrimaryKey );
-            transaction.getStatement( ).setBytes( 2, byteArrayOutputStream.toByteArray( ) );
-            transaction.executeStatement( );
-
-            transaction.commit( );
+            daoUtilQueue.setInt( 1, nNewPrimaryKey );
+            daoUtilQueue.executeUpdate( );
+            daoUtilItem.setInt( 1, nNewPrimaryKey );
+            daoUtilItem.setBytes( 2, byteArrayOutputStream.toByteArray( ) );
+            daoUtilItem.executeUpdate( );
+            if ( !bTransactionGlobale )
+            {
+                TransactionManager.commitTransaction( CRMClientPlugin.getPlugin( ) );
+            }
         }
         catch( Exception e )
         {
-            if ( transaction != null )
+            if ( !bTransactionGlobale )
             {
-                transaction.rollback( e );
+                TransactionManager.rollBack( CRMClientPlugin.getPlugin( ) );
             }
-
             AppLogService.error( e );
         }
     }
 
     /**
-     * {@inheritDoc}
+     * Whether a container-managed (JTA) transaction is active on the current thread. Inside one, the
+     * connections are enlisted by the container and the DAO must not commit nor roll back itself.
+     *
+     * @return true when a global transaction is active
      */
+    private boolean isTransactionGlobaleActive( )
+    {
+        for ( ITransactionSynchronizationManager manager : CDI.current( ).select( ITransactionSynchronizationManager.class ) )
+        {
+            if ( manager.isSynchronizationActive( ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public CRMItemQueue load( int nIdCRMItemQueue )
     {
@@ -214,29 +230,33 @@ public class CRMItemQueueDAO implements ICRMItemQueueDAO
     @Override
     public void delete( int nIdCRMItemQueue )
     {
-        Transaction transaction = new Transaction( CRMClientPlugin.getPlugin( ) );
-
-        try
+        boolean bTransactionGlobale = isTransactionGlobaleActive( );
+        if ( !bTransactionGlobale )
         {
-            transaction.prepareStatement( SQL_QUERY_DELETE_CRM_ITEM );
-            transaction.getStatement( ).setInt( 1, nIdCRMItemQueue );
-            transaction.executeStatement( );
-            transaction.prepareStatement( SQL_QUERY_DELETE );
-            transaction.getStatement( ).setInt( 1, nIdCRMItemQueue );
-            transaction.executeStatement( );
-            transaction.commit( );
+            TransactionManager.beginTransaction( CRMClientPlugin.getPlugin( ) );
         }
-
+        try ( DAOUtil daoUtilItem = new DAOUtil( SQL_QUERY_DELETE_CRM_ITEM, CRMClientPlugin.getPlugin( ) ) ;
+                DAOUtil daoUtilQueue = new DAOUtil( SQL_QUERY_DELETE, CRMClientPlugin.getPlugin( ) ) )
+        {
+            daoUtilItem.setInt( 1, nIdCRMItemQueue );
+            daoUtilItem.executeUpdate( );
+            daoUtilQueue.setInt( 1, nIdCRMItemQueue );
+            daoUtilQueue.executeUpdate( );
+            if ( !bTransactionGlobale )
+            {
+                TransactionManager.commitTransaction( CRMClientPlugin.getPlugin( ) );
+            }
+        }
         catch( Exception e )
         {
-            transaction.rollback( e );
+            if ( !bTransactionGlobale )
+            {
+                TransactionManager.rollBack( CRMClientPlugin.getPlugin( ) );
+            }
             AppLogService.error( e );
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getCountCRMItem( )
     {
