@@ -40,6 +40,7 @@ import fr.paris.lutece.util.signrequest.RequestAuthenticator;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import jakarta.annotation.PostConstruct;
@@ -47,22 +48,30 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+
 @ApplicationScoped
 @Named( "crmclient.requestAuthenticatorService" )
 public class AuthenticatorService implements IAuthenticatorService
 {
     private static final String DEFAULT_AUTHENTICATOR_CODE = "default";
+    private static final String PROPERTY_WEBAPP_CODES = "crmclient.requestAuthenticator.webappCodes";
+    private static final String PREFIX_WS = "crmclient.requestAuthenticatorForWs.";
+    private static final String PREFIX_URL = "crmclient.requestAuthenticatorForUrl.";
     @Inject
     @Named( "crmclient.requestAuthenticatorForWs" )
     private AbstractPrivateKeyAuthenticator _authenticatorForWs;
     @Inject
     @Named( "crmclient.requestAuthenticatorForUrl" )
     private AbstractPrivateKeyAuthenticator _authenticatorForUrl;
+    @Inject
+    private AuthenticatorProducer _authenticatorProducer;
+
     private Map<String, RequestAuthenticator> _mapRequestAuthenticatorForWs;
     private Map<String, AbstractAuthenticator> _mapRequestAuthenticatorForUrl;
 
     /**
-     * Build the authenticator maps from the injected authenticators.
+     * Builds the authenticator maps: the default ones, then one per webapp code listed in crmclient.requestAuthenticator.webappCodes.
      */
     @PostConstruct
     public void init( )
@@ -71,6 +80,19 @@ public class AuthenticatorService implements IAuthenticatorService
         _mapRequestAuthenticatorForWs.put( DEFAULT_AUTHENTICATOR_CODE, _authenticatorForWs );
         _mapRequestAuthenticatorForUrl = new HashMap<>( );
         _mapRequestAuthenticatorForUrl.put( DEFAULT_AUTHENTICATOR_CODE, _authenticatorForUrl );
+
+        for ( String strCode : ConfigProvider.getConfig( ).getOptionalValues( PROPERTY_WEBAPP_CODES, String.class ).orElse( List.of( ) ) )
+        {
+            RequestAuthenticator authenticatorForWs = _authenticatorProducer.produceForPrefix( PREFIX_WS + strCode );
+            if ( authenticatorForWs != null )
+            {
+                _mapRequestAuthenticatorForWs.put( strCode, authenticatorForWs );
+            }
+            if ( _authenticatorProducer.produceForPrefix( PREFIX_URL + strCode ) instanceof AbstractAuthenticator authenticatorForUrl )
+            {
+                _mapRequestAuthenticatorForUrl.put( strCode, authenticatorForUrl );
+            }
+        }
     }
 
     /**

@@ -34,11 +34,14 @@
 package fr.paris.lutece.plugins.crmclient.service.authenticator;
 
 import fr.paris.lutece.util.signrequest.AbstractPrivateKeyAuthenticator;
+import fr.paris.lutece.util.signrequest.RequestAuthenticator;
 import fr.paris.lutece.util.signrequest.cdi.AbstractSignRequestAuthenticatorProducer;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
+
+import org.eclipse.microprofile.config.ConfigProvider;
 
 /**
  *
@@ -63,5 +66,21 @@ public class AuthenticatorProducer extends AbstractSignRequestAuthenticatorProdu
     public AbstractPrivateKeyAuthenticator produceRequestAuthenticatorForUrl( )
     {
         return (AbstractPrivateKeyAuthenticator) produceRequestAuthenticator( "crmclient.requestAuthenticatorForUrl" );
+    }
+
+    /**
+     * Produces the authenticator configured under a prefix.
+     *
+     * @param strConfigPrefix
+     *            the configuration prefix, for example crmclient.requestAuthenticatorForWs.pro
+     * @return the authenticator, or null when the prefix declares no name
+     */
+    public RequestAuthenticator produceForPrefix( String strConfigPrefix )
+    {
+        if ( ConfigProvider.getConfig( ).getOptionalValue( strConfigPrefix + ".name", String.class ).isEmpty( ) )
+        {
+            return null;
+        }
+        return produceRequestAuthenticator( strConfigPrefix );
     }
 }
